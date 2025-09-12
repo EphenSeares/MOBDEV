@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,25 +7,43 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  ScrollView,
 } from "react-native";
-import { AntDesign, Entypo } from "@expo/vector-icons"; // icons
+import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 
 const { width } = Dimensions.get("window");
 
-const playlistData = [
-  { id: "1", title: "Lost in Japan", artist: "Shawn Mendes", image: "https://i.imgur.com/hZ1V2qC.png" },
-  { id: "2", title: "Better Together", artist: "Jack Johnson", image: "https://i.imgur.com/EvFhB8z.png" },
-  { id: "3", title: "Ocean Eyes", artist: "Billie Eilish", image: "https://i.imgur.com/Hv4gIQD.png" },
-  { id: "4", title: "Peaches", artist: "Justin Bieber ft. Daniel Caesar, Giveon", image: "https://i.imgur.com/5D7iWUE.png" },
-  { id: "5", title: "Blinding Lights", artist: "The Weeknd", image: "https://i.imgur.com/3yF3n9v.png" },
-  { id: "6", title: "Levitating", artist: "Dua Lipa ft. DaBaby", image: "https://i.imgur.com/9mJ9HTh.png" },
-  { id: "7", title: "Heat Waves", artist: "Glass Animals", image: "https://i.imgur.com/vyyqV9H.png" },
+const allSongs = [
+  { id: "1", title: "Lost in Japan", artist: "Shawn Mendes", genre: "Pop", image: "https://i.imgur.com/hZ1V2qC.png", fav: true, history: false },
+  { id: "2", title: "Better Together", artist: "Jack Johnson", genre: "Acoustic", image: "https://i.imgur.com/EvFhB8z.png", fav: false, history: true },
+  { id: "3", title: "Ocean Eyes", artist: "Billie Eilish", genre: "Indie", image: "https://i.imgur.com/Hv4gIQD.png", fav: true, history: true },
+  { id: "4", title: "Peaches", artist: "Justin Bieber ft. Daniel Caesar, Giveon", genre: "R&B", image: "https://i.imgur.com/5D7iWUE.png", fav: false, history: true },
+  { id: "5", title: "Blinding Lights", artist: "The Weeknd", genre: "Pop", image: "https://i.imgur.com/3yF3n9v.png", fav: true, history: false },
+  { id: "6", title: "Levitating", artist: "Dua Lipa ft. DaBaby", genre: "Dance", image: "https://i.imgur.com/9mJ9HTh.png", fav: false, history: true },
+  { id: "7", title: "Heat Waves", artist: "Glass Animals", genre: "Indie", image: "https://i.imgur.com/vyyqV9H.png", fav: false, history: false },
 ];
+
+const genres = ["All", "Pop", "Acoustic", "Indie", "R&B", "Dance"];
 
 const Playlist = () => {
   const navigation = useNavigation();
+  const [activeTab, setActiveTab] = useState("All");
+  const [selectedGenre, setSelectedGenre] = useState("All");
+
+  const filterSongs = () => {
+    let data = allSongs;
+    if (activeTab === "Favorites") {
+      data = data.filter((song) => song.fav);
+    } else if (activeTab === "History") {
+      data = data.filter((song) => song.history);
+    }
+    if (selectedGenre !== "All") {
+      data = data.filter((song) => song.genre === selectedGenre);
+    }
+    return data;
+  };
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.itemContainer} activeOpacity={0.8}>
@@ -46,7 +64,7 @@ const Playlist = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header with image */}
+      {/* Header */}
       <View style={styles.header}>
         <Image
           source={{ uri: "https://i.imgur.com/lpBl9oQ.jpeg" }}
@@ -56,7 +74,6 @@ const Playlist = () => {
           colors={["transparent", "rgba(0,0,0,0.9)"]}
           style={styles.overlay}
         />
-        {/* Back Button */}
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.navigate("Home")}
@@ -64,19 +81,72 @@ const Playlist = () => {
           <AntDesign name="arrowleft" size={24} color="white" />
           <Text style={styles.backText}>Home</Text>
         </TouchableOpacity>
-        {/* Playlist Info */}
         <View style={styles.headerContent}>
           <Text style={styles.playlistName}>Chill Vibes</Text>
-          <Text style={styles.playlistSubtitle}>7 songs • Updated today</Text>
+          <Text style={styles.playlistSubtitle}>
+            {filterSongs().length} songs • Updated today
+          </Text>
         </View>
       </View>
 
+      {/* Tabs */}
+      <View style={styles.tabRow}>
+        {["All", "Favorites", "History"].map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            onPress={() => setActiveTab(tab)}
+            style={[
+              styles.tabButton,
+              activeTab === tab && styles.activeTabButton,
+            ]}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab && styles.activeTabText,
+              ]}
+            >
+              {tab}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Genre Filter (Horizontal Scroll) */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.genreScroll}
+        contentContainerStyle={{ paddingHorizontal: 15 }}
+      >
+        {genres.map((item) => (
+          <TouchableOpacity
+            key={item}
+            style={[
+              styles.genreChip,
+              selectedGenre === item && styles.activeGenreChip,
+            ]}
+            onPress={() => setSelectedGenre(item)}
+          >
+            <Text
+              style={[
+                styles.genreText,
+                selectedGenre === item && styles.activeGenreText,
+              ]}
+            >
+              {item}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
       {/* Song List */}
       <FlatList
-        data={playlistData}
+        data={filterSongs()}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
@@ -127,6 +197,56 @@ const styles = StyleSheet.create({
     color: "#aaa",
     fontSize: 14,
     marginTop: 4,
+  },
+  tabRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginVertical: 10,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 20,
+    marginHorizontal: 15,
+    padding: 5,
+  },
+  tabButton: {
+    flex: 1, // fixed width (equal spacing)
+    alignItems: "center",
+    paddingVertical: 8,
+    borderRadius: 15,
+    marginHorizontal: 3,
+  },
+  activeTabButton: {
+    backgroundColor: "#1DB954",
+  },
+  tabText: {
+    color: "#aaa",
+    fontSize: 14,
+  },
+  activeTabText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  genreScroll: {
+    marginVertical: 10,
+  },
+  genreChip: {
+    minWidth: 80, // fixed width so it won’t resize
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 6,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  activeGenreChip: {
+    backgroundColor: "#1DB954",
+  },
+  genreText: {
+    color: "#aaa",
+    fontSize: 14,
+  },
+  activeGenreText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
   itemContainer: {
     flexDirection: "row",

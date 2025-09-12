@@ -15,9 +15,9 @@ const CustomDrawer = (props) => {
         {/* Profile Section */}
         <View style={styles.profileContainer}>
           <LinearGradient colors={["#1DB954", "#1ed760"]} style={styles.profileCircle}>
-            <Text style={styles.profileText}>H</Text>
+            <Text style={styles.profileText}>HM</Text>
           </LinearGradient>
-          <Text style={styles.username}>Seares</Text>
+          <Text style={styles.username}>Honoka Masuda</Text>
           <Text style={styles.subtitle}>Premium Account</Text>
         </View>
 
